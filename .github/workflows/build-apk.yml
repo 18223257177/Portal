@@ -28,7 +28,14 @@ jobs:
           distribution: jetbrains
           java-version: 21
           cache: gradle
-          
+      # ✅ 关键修复：添加阿里云镜像仓库
+      - name: Setup Maven Mirror
+        run: |
+          echo "maven { url = 'https://maven.aliyun.com/repository/public' }" > $HOME/.gradle/init.gradle
+          echo "mavenCentral()" >> $HOME/.gradle/init.gradle
+          echo "google()" >> $HOME/.gradle/init.gradle
+
+
       - name: Cache Gradle Dependencies
         uses: actions/cache@v4
         with:
