@@ -71,7 +71,7 @@ jobs:
       - name: Build with Gradle
         run: |
           chmod +x ./gradlew
-          ./gradlew :app:assembleDebug --build-cache --parallel --warning-mode all --stacktrace
+          ./gradlew :app:assembleDebug
 
       - name: Set APK Paths
         run: |
