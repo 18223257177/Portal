@@ -36,14 +36,14 @@ jobs:
           
           # 正确创建 init.gradle
           cat > $HOME/.gradle/init.gradle << 'EOF'
-allprojects {
-    repositories {
-        maven { url = 'https://maven.aliyun.com/repository/public' }
-        mavenCentral()
-        google()
-    }
-}
-EOF
+          allprojects {
+              repositories {
+                  maven { url = 'https://maven.aliyun.com/repository/public' }
+                  mavenCentral()
+                  google()
+              }
+          }
+          EOF
 
       - name: Cache Gradle Dependencies
         uses: actions/cache@v4
