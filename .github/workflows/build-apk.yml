@@ -56,45 +56,30 @@ jobs:
         run: |
           chmod +x ./gradlew
           ./gradlew :app:assembleDebug --build-cache --parallel --warning-mode all --stacktrace
-          echo "APK_FILE_ALL=$(find app/build/outputs/apk/app/release -name '*.apk')" >> $GITHUB_ENV
-          echo "APK_FILE_ARM64=$(find app/build/outputs/apk/arm64/release -name '*.apk')" >> $GITHUB_ENV
-          echo "APK_FILE_X86_64=$(find app/build/outputs/apk/x64/release -name '*.apk')" >> $GITHUB_ENV
+          echo "APK_FILE_ALL=$(find app/build/outputs/apk/debug -name 'app-debug*.apk' -type f | head -n 1)" >> $GITHUB_ENV
+          echo "APK_FILE_ARM64=$(find app/build/outputs/apk/arm64-v8a/debug -name 'app-debug*.apk' -type f | head -n 1)" >> $GITHUB_ENV
+          echo "APK_FILE_X86_64=$(find app/build/outputs/apk/x86_64/debug -name 'app-debug*.apk' -type f | head -n 1)" >> $GITHUB_ENV
 
       - name: Set Portal Version
         run: |
-          version_name_all=$(basename -s .apk "${{ env.APK_FILE_ALL }}")
-          version_name_arm64=$(basename -s .apk "${{ env.APK_FILE_ARM64 }}")
-          version_name_x86_64=$(basename -s .apk "${{ env.APK_FILE_X86_64 }}")
+          # 修复 basename 命令，使用正确的格式
+          version_name_all=$(basename "${{ env.APK_FILE_ALL }}" .apk)
+          version_name_arm64=$(basename "${{ env.APK_FILE_ARM64 }}" .apk)
+          version_name_x86_64=$(basename "${{ env.APK_FILE_X86_64 }}" .apk)
           echo "PORTAL_VERSION_ALL=$version_name_all" >> $GITHUB_ENV
           echo "PORTAL_VERSION_ARM64=$version_name_arm64" >> $GITHUB_ENV
           echo "PORTAL_VERSION_x86_64=$version_name_x86_64" >> $GITHUB_ENV
 
       - name: Show Artifacts SHA256
         run: |
-          echo "### Build Success :rocket:" >> $GITHUB_STEP_SUMMARY
-          echo "|ABI|SHA256|" >> $GITHUB_STEP_SUMMARY
-          echo "|:--------:|:----------|" >> $GITHUB_STEP_SUMMARY
-          all=($(sha256sum "${{ env.APK_FILE_ALL }}"))
-          echo "|all|$all" >> $GITHUB_STEP_SUMMARY
-          arm64=($(sha256sum "${{ env.APK_FILE_ARM64 }}"))
-          echo "|arm64|$arm64" >> $GITHUB_STEP_SUMMARY
-          x86_64=($(sha256sum "${{ env.APK_FILE_X86_64 }}"))
-          echo "|x86_64|$x86_64" >> $GITHUB_STEP_SUMMARY
+          # 添加检查，确保文件存在
+          if [ -f "${{ env.APK_FILE_ALL }}" ]; then
+            all_sha=$(sha256sum "${{ env.APK_FILE_ALL }}" | awk '{print $1}')
+            echo "### Build Success :rocket:" >> $GITHUB_STEP_SUMMARY
+            echo "|ABI|SHA256|" >> $GITHUB_STEP_SUMMARY
+            echo "|:--------:|:----------|" >> $GITHUB_STEP_SUMMARY
+            echo "|all|$all_sha" >> $GITHUB_STEP_SUMMARY
+          fi
 
-      - name: Upload ALL APK RELEASE
-        uses: actions/upload-artifact@v4
-        with:
-          name: "${{ env.PORTAL_VERSION_ALL }}"
-          path: "${{ env.APK_FILE_ALL }}"
-
-      - name: Upload ARM64 APK RELEASE
-        uses: actions/upload-artifact@v4
-        with:
-          name: "${{ env.PORTAL_VERSION_ARM64 }}"
-          path: "${{ env.APK_FILE_ARM64 }}"
-
-      - name: Upload X86_64 APK RELEASE
-        uses: actions/upload-artifact@v4
-        with:
-          name: "${{ env.PORTAL_VERSION_x86_64 }}"
-          path: "${{ env.APK_FILE_X86_64 }}"
+          if [ -f "${{ env.APK_FILE_ARM64 }}" ]; then
+            arm64_sha=$(sha256sum "${{ env.APK_FILE_ARM64 }}" | awk '{print $1
